@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC, LinearSVC
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import AdaBoostClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.linear_model import Perceptron
@@ -114,3 +115,78 @@ for dataset in combine:
   dataset['Title'] = dataset['Title'].astype(int)
 
 combine = [train_df, test_df]
+
+# Model, predict and solve
+
+X_train = train_df.drop("Survived", axis=1)
+Y_train = train_df["Survived"]
+X_test = test_df.drop("PassengerId", axis=1).copy()
+
+# Logistic regression to explore correlation between features and label
+
+logreg = LogisticRegression()
+logreg.fit(X_train, Y_train)
+Y_pred = logreg.predict(X_test)
+acc_log = round(logreg.score(X_train, Y_train) * 100, 2)
+
+coeff_df = pd.DataFrame(train_df.columns.delete(0))
+coeff_df.columns = ['Feature']
+coeff_df['Correlation'] = pd.Series(logreg.coef_[0])
+
+# Support Vector Machine
+
+svc = SVC(kernel='rbf',C=10000.0, random_state=42)
+svc.fit(X_train, Y_train)
+Y_pred = svc.predict(X_test)
+acc_svc = round(svc.score(X_train, Y_train) * 100, 2)
+
+# KNeighbors
+
+knn = KNeighborsClassifier(n_neighbors=8)
+knn.fit(X_train, Y_train)
+Y_pred = knn.predict(X_test)
+acc_knn = round(knn.score(X_train, Y_train) * 100, 2)
+
+# Gaussian Naive Bayes
+
+gaussian = GaussianNB()
+gaussian.fit(X_train, Y_train)
+Y_pred = gaussian.predict(X_test)
+acc_gaussian = round(gaussian.score(X_train, Y_train) * 100, 2)
+
+# Perceptron
+
+perceptron = Perceptron()
+perceptron.fit(X_train, Y_train)
+Y_pred = perceptron.predict(X_test)
+acc_perceptron = round(perceptron.score(X_train, Y_train) * 100, 2)
+
+# Decision Tree
+
+decision_tree = DecisionTreeClassifier(min_samples_split=2, random_state=42)
+decision_tree.fit(X_train, Y_train)
+Y_pred = decision_tree.predict(X_test)
+acc_decision_tree = round(decision_tree.score(X_train, Y_train) * 100, 2)
+
+# Random Forest
+
+random_forest = RandomForestClassifier(n_estimators=100, random_state=42)
+random_forest.fit(X_train, Y_train)
+Y_pred = random_forest.predict(X_test)
+acc_random_forest = round(random_forest.score(X_train, Y_train) * 100, 2)
+
+# AdaBoost
+
+ada = AdaBoostClassifier(n_estimators=100, random_state=42)
+ada.fit(X_train, Y_train)
+Y_pred = ada.predict(X_test)
+acc_ada = round(ada.score(X_train, Y_train) * 100, 2)
+
+
+# Model Evaluation
+models = pd.DataFrame({
+  'Model': ['Support Vector Machines', 'KNN', 'Logistic Regression', 'RandomForest', 'Naive Bayes', 'Perceptron', 'Decision Tree', 'AdaBoost'],
+  'Score': [acc_svc, acc_knn, acc_log, acc_random_forest, acc_gaussian, acc_perceptron, acc_decision_tree, acc_ada]
+})
+
+print models.sort_values(by='Score', ascending=False)
